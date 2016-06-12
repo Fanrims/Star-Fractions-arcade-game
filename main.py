@@ -11,5 +11,5 @@ def main():
     space_background = games.load_image("pic/space.jpg" , transparent = False )
     games.screen.background = space_background
     games.screen.mainloop()
-main()
 
+main()
