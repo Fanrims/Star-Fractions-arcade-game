@@ -14,6 +14,9 @@ games.init(screen_width = 1600, screen_height = 1020, fps = 50)
 class Player_ship(games.Sprite):
     player_image = games.load_image("sprites/player_ship.bmp")
     ROTATION_STEP = 3
+    MISSLE_DELAY = 20
+    player_health = 5
+    missle_wait = 0
     def update(self):
         """movement of the ship"""
         if games.keyboard.is_pressed(games.K_LEFT):
@@ -28,9 +31,22 @@ class Player_ship(games.Sprite):
             self.x -= 2
         if games.keyboard.is_pressed(games.K_d):
             self.x += 2
-        if games.keyboard.is_pressed(games.K_SPACE): #shooting
+        if games.keyboard.is_pressed(games.K_SPACE) and self.missle_wait == 0: #shooting
             new_missle = Missle(self.x, self.y, self.angle)
             games.screen.add(new_missle)
+            self.missle_wait = Player_ship.MISSLE_DELAY
+        if self.missle_wait > 0:
+            self.missle_wait -= 1
+        if self.overlapping_sprites:
+            self.player_health -= 1
+            if self.player_health == 0:
+                for sprite in self.overlapping_sprites:
+                    sprite.die()
+                self.die()
+    def die(self):
+        """destroys ship"""
+        self.destroy()
+
 
 class Enemy(games.Sprite):
     SMALL = 1
@@ -49,18 +65,24 @@ class Enemy(games.Sprite):
             dy = random.choice([1, -1]) * Enemy.SPEED * random.random() / size)
         self.size = size
     def update(self):
-        if self.top == games.screen.height:
-            self.destroy()
-        if self.bottom == games.screen.height:
-            self.destroy()
-        if self.left == games.screen.width:
-            self.destroy()
-        if self.right == games.screen.width:
-            self.destroy()
+        if self.top > games.screen.height:
+            self.bottom = 0
+        if self.bottom < 0:
+            self.top = games.screen.height
+        if self.left > games.screen.width:
+            self.right = 0
+        if self.right < 0:
+            self.left = games.screen.width
+        if self.overlapping_sprites == Missle.overlapping_sprites:
+            for sprite in self.overlapping_sprites:
+                sprite.die()
+            self.die()
+    def die(self):
+        self.destroy()
 
 class Missle(games.Sprite):
     image = games.load_image("sprites/missle_player.bmp")
-    BUFFER = 70 #distance from the ship
+    BUFFER = 130 #distance from the ship
     LIFETIME = 100
     VELOCITY_FACTOR = 10 #speed
     def __init__(self, ship_x, ship_y, ship_angle):
@@ -89,6 +111,12 @@ class Missle(games.Sprite):
             self.destroy()
         if self.right == games.screen.width:
             self.destroy()
+        if self.overlapping_sprites:
+            for sprite in self.overlapping_sprites:
+                sprite.die()
+            self.die()
+    def die(self):
+        self.destroy()
 
 def main():
     space_background = games.load_image("pic/space.jpg", transparent=False )
