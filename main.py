@@ -7,6 +7,7 @@ Evheny Smirnov
 """creating the screen"""
 from livewires import games
 import math
+import random
 """creating the screen"""
 games.init(screen_width = 1600, screen_height = 1020, fps = 50)
 
@@ -30,6 +31,32 @@ class Player_ship(games.Sprite):
         if games.keyboard.is_pressed(games.K_SPACE): #shooting
             new_missle = Missle(self.x, self.y, self.angle)
             games.screen.add(new_missle)
+
+class Enemy(games.Sprite):
+    SMALL = 1
+    MEDIUM = 2
+    LARGE = 3
+    images = {SMALL : games.load_image("sprites/enemy_SMALL.bmp"),
+              MEDIUM : games.load_image("sprites/enemy_MEDIUM.bmp"),
+              LARGE : games.load_image("sprites/enemy_LARGE.bmp") }
+    SPEED = 2
+    def __init__(self, x, y, size):
+        """initializing sprite of an enemy ship"""
+        super(Enemy, self).__init__(
+            image = Enemy.images[size],
+            x = x, y = y,
+            dx = random.choice([1, -1]) * Enemy.SPEED * random.random()/size,
+            dy = random.choice([1, -1]) * Enemy.SPEED * random.random() / size)
+        self.size = size
+    def update(self):
+        if self.top == games.screen.height:
+            self.destroy()
+        if self.bottom == games.screen.height:
+            self.destroy()
+        if self.left == games.screen.width:
+            self.destroy()
+        if self.right == games.screen.width:
+            self.destroy()
 
 class Missle(games.Sprite):
     image = games.load_image("sprites/missle_player.bmp")
@@ -68,7 +95,13 @@ def main():
     games.screen.background = space_background
     player_ship = Player_ship (image=Player_ship.player_image,
                                x=games.screen.width/2,
-                               y=games.screen.height/8)
+                               y=games.screen.height/2)
+    for i in range(8):
+        x = random.randrange(games.screen.width)
+        y = random.randrange(games.screen.height)
+        size = random.choice([Enemy.SMALL, Enemy.MEDIUM, Enemy.LARGE])
+        new_enemy = Enemy(x = x, y = y, size = size)
+        games.screen.add(new_enemy)
     games.screen.add(player_ship)
     games.screen.mainloop()
 
