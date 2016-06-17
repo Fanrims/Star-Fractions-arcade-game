@@ -38,11 +38,9 @@ class Player_ship(games.Sprite):
         if self.missle_wait > 0:
             self.missle_wait -= 1
         if self.overlapping_sprites:
-            self.player_health -= 1
-            if self.player_health == 0:
-                for sprite in self.overlapping_sprites:
-                    sprite.die()
-                self.die()
+            for sprite in self.overlapping_sprites:
+                sprite.die()
+            self.die()
     def die(self):
         """destroys ship"""
         self.destroy()
