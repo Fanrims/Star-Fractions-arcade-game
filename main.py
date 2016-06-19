@@ -5,13 +5,18 @@ Evheny Smirnov
 """
 
 """creating the screen"""
-from livewires import games
+from livewires import games, color
 import math
 import random
+
 """creating the screen"""
 games.init(screen_width = 1600, screen_height = 1020, fps = 50)
 
 class Player_ship(games.Sprite):
+    def __init__(self, game, x, y):
+        """initialize sprite"""
+        super(Player_ship, self).__init__(image = Player_ship.player_image, x=x, y=y)
+        self.game = game
     player_image = games.load_image("sprites/player_ship.bmp")
     ROTATION_STEP = 3
     MISSLE_DELAY = 20
@@ -44,24 +49,26 @@ class Player_ship(games.Sprite):
     def die(self):
         """destroys ship"""
         self.destroy()
-
+        self.game.end()
 
 class Enemy(games.Sprite):
     SMALL = 1
     MEDIUM = 2
     LARGE = 3
+    POINTS = 100
     images = {SMALL : games.load_image("sprites/enemy_SMALL.bmp"),
               MEDIUM : games.load_image("sprites/enemy_MEDIUM.bmp"),
               LARGE : games.load_image("sprites/enemy_LARGE.bmp") }
     SPEED = 2
-    def __init__(self, x, y, size):
-        """initializing sprite of an enemy ship"""
+    def __init__(self, game, x, y, size):
+        """initialize sprite of an enemy ship"""
         super(Enemy, self).__init__(
             image = Enemy.images[size],
             x = x, y = y,
             dx = random.choice([1, -1]) * Enemy.SPEED * random.random()/size,
             dy = random.choice([1, -1]) * Enemy.SPEED * random.random() / size)
         self.size = size
+        self.game = game
     def update(self):
         if self.top > games.screen.height:
             self.bottom = 0
@@ -76,6 +83,8 @@ class Enemy(games.Sprite):
                 sprite.die()
             self.die()
     def die(self):
+        self.game.score.value += int(Enemy.POINTS * self.size)
+        self.game.score.right = games.screen.width - 10
         self.destroy()
 
 class Missle(games.Sprite):
@@ -116,19 +125,75 @@ class Missle(games.Sprite):
     def die(self):
         self.destroy()
 
-def main():
-    space_background = games.load_image("pic/space.jpg", transparent=False )
-    games.screen.background = space_background
-    player_ship = Player_ship (image=Player_ship.player_image,
-                               x=games.screen.width/2,
-                               y=games.screen.height/2)
-    for i in range(8):
-        x = random.randrange(games.screen.width)
-        y = random.randrange(games.screen.height)
-        size = random.choice([Enemy.SMALL, Enemy.MEDIUM, Enemy.LARGE])
-        new_enemy = Enemy(x = x, y = y, size = size)
-        games.screen.add(new_enemy)
-    games.screen.add(player_ship)
-    games.screen.mainloop()
+class Game(object):
+    def __init__(self):
+        #free space around the player ship
+        BUFFER = 400
+        """initialize an object Game"""
+        #add score and player hit points
+        self.score = games.Text(value = 0,
+                                size = 50,
+                                color = color.white,
+                                top = 10,
+                                right = games.screen.width - 10,
+                                is_collideable=False)
+        self.hit_points = games.Text(value=Player_ship.player_health,
+                                     size = 50,
+                                     color=color.white,
+                                     top=70,
+                                     right=games.screen.width - 10,
+                                     is_collideable=False)
+        games.screen.add(self.score)
+        games.screen.add(self.hit_points)
+        #create player
+        self.player_ship = Player_ship(game = self,
+                                       x = games.screen.width / 2,
+                                       y = games.screen.height / 2)
+        games.screen.add(self.player_ship)
+        #create enemies
+        for i in range(8):
+            x_min = random.randrange(BUFFER)
+            y_min = BUFFER - x_min
 
+            x_distance =random.randrange(x_min, games.screen.width - x_min)
+            y_distance = random.randrange(y_min, games.screen.height - y_min)
+
+            x = self.player_ship.x + x_distance
+            y = self.player_ship.y + y_distance
+
+            x %= games.screen.width
+            y %= games.screen.height
+
+            enemies = Enemy(game = self,
+                            x = x,
+                            y = y,
+                            size=random.choice([Enemy.SMALL, Enemy.MEDIUM, Enemy.LARGE]))
+            games.screen.add(enemies)
+
+    def play(self):
+        """start the game"""
+        #start the music
+        games.music.load("sounds/StarFr_title.mid")
+        games.music.play(-1)
+        #load background image
+        background = games.load_image("pic/space.jpg")
+        games.screen.background = background
+        #start
+        games.screen.mainloop()
+
+    def end(self):
+        """end the game"""
+        end_massage = games.Message(value= "GAME OVER",
+                                    size = 300,
+                                    color = color.red,
+                                    x = games.screen.width/2,
+                                    y =games.screen.height/2,
+                                    lifetime= 5*games.screen.fps,
+                                    after_death=games.screen.quit,
+                                    is_collideable=False)
+        games.screen.add(end_massage)
+
+def main():
+    star_fraction = Game()
+    star_fraction.play()
 main()
