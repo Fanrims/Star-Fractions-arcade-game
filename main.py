@@ -20,7 +20,7 @@ class Player_ship(games.Sprite):
     player_image = games.load_image("sprites/player_ship.bmp")
     ROTATION_STEP = 3
     MISSLE_DELAY = 20
-    player_health = 5
+    PLAYER_HP = 5
     missle_wait = 0
     def update(self):
         """movement of the ship"""
@@ -43,6 +43,8 @@ class Player_ship(games.Sprite):
         if self.missle_wait > 0:
             self.missle_wait -= 1
         if self.overlapping_sprites:
+            self.game.hit_points.value -= 1
+            self.game.hit_points.right = games.screen.width - 10
             for sprite in self.overlapping_sprites:
                 sprite.die()
             self.die()
@@ -137,7 +139,7 @@ class Game(object):
                                 top = 10,
                                 right = games.screen.width - 10,
                                 is_collideable=False)
-        self.hit_points = games.Text(value=Player_ship.player_health,
+        self.hit_points = games.Text(value=Player_ship.PLAYER_HP,
                                      size = 50,
                                      color=color.white,
                                      top=70,
@@ -152,18 +154,15 @@ class Game(object):
         games.screen.add(self.player_ship)
         #create enemies
         for i in range(8):
+            #calculate distance around player and spawn 8 enemies
             x_min = random.randrange(BUFFER)
             y_min = BUFFER - x_min
-
             x_distance =random.randrange(x_min, games.screen.width - x_min)
             y_distance = random.randrange(y_min, games.screen.height - y_min)
-
             x = self.player_ship.x + x_distance
             y = self.player_ship.y + y_distance
-
-            x %= games.screen.width
-            y %= games.screen.height
-
+            x %= games.screen.width # return an enemy into the screen
+            y %= games.screen.height # if it spawn out of it
             enemies = Enemy(game = self,
                             x = x,
                             y = y,
@@ -173,7 +172,7 @@ class Game(object):
     def play(self):
         """start the game"""
         #start the music
-        games.music.load("sounds/StarFr_title.mid")
+        games.music.load("sounds/StarFr_title.mp3")
         games.music.play(-1)
         #load background image
         background = games.load_image("pic/space.jpg")
