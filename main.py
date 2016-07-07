@@ -84,11 +84,19 @@ class Enemy(games.Sprite):
             for sprite in self.overlapping_sprites:
                 sprite.die()
             self.die()
+    def autoAttack(self):
+        """find min distance to player, then shoot
+        still working on it"""
+        x_min = self.get_dx
+        y_min = self.get_dy
+        pl_x = Player_ship.get_dx
+        pl_y = Player_ship.get_dy
+        d_x = x_min - pl_x
+        d_y = y_min - pl_y
     def die(self):
         self.game.score.value += int(Enemy.POINTS * self.size)
         self.game.score.right = games.screen.width - 10
         self.destroy()
-
 class Missle(games.Sprite):
     image = games.load_image("sprites/missle_player.bmp")
     BUFFER = 130 #distance from the ship
