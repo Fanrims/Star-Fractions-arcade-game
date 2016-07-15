@@ -1,16 +1,14 @@
 """
 Python 3.1.1
 Pygame 1.9.1
-Evheny Smirnov
+Evgeny Smirnov
 """
 
-"""creating the screen"""
 from livewires import games, color
 import math
 import random
 
-"""creating the screen"""
-games.init(screen_width = 1600, screen_height = 1020, fps = 50)
+games.init(screen_width = 1600, screen_height = 1020, fps = 50) # screen
 
 class Player_ship(games.Sprite):
     def __init__(self, game, x, y):
@@ -36,7 +34,7 @@ class Player_ship(games.Sprite):
             self.x -= 2
         if games.keyboard.is_pressed(games.K_d):
             self.x += 2
-        if games.keyboard.is_pressed(games.K_SPACE) and self.missle_wait == 0: #shooting
+        if games.keyboard.is_pressed(games.K_SPACE) and self.missle_wait == 0: # shooting
             new_missle = Missle(self.x, self.y, self.angle)
             games.screen.add(new_missle)
             self.missle_wait = Player_ship.MISSLE_DELAY
