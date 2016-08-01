@@ -41,13 +41,15 @@ class Player_ship(games.Sprite):
         if self.missle_wait > 0:
             self.missle_wait -= 1
         if self.overlapping_sprites:
+            self.PLAYER_HP -= 1
             self.game.hit_points.value -= 1
             self.game.hit_points.right = games.screen.width - 10
-            for sprite in self.overlapping_sprites:
-                sprite.die()
-            self.die()
+            if self.PLAYER_HP == 0:
+                for sprite in self.overlapping_sprites:
+                    sprite.die()
+                self.die()
     def die(self):
-        """destroys ship"""
+        """destroy ship"""
         self.destroy()
         self.game.end()
 
@@ -69,6 +71,7 @@ class Enemy(games.Sprite):
             dy = random.choice([1, -1]) * Enemy.SPEED * random.random() / size)
         self.size = size
         self.game = game
+
     def update(self):
         if self.top > games.screen.height:
             self.bottom = 0
@@ -78,23 +81,22 @@ class Enemy(games.Sprite):
             self.right = 0
         if self.right < 0:
             self.left = games.screen.width
+        while Player_ship.PLAYER_HP != 0:
+            self.autoAttack()
         if self.overlapping_sprites == Missle.overlapping_sprites:
             for sprite in self.overlapping_sprites:
                 sprite.die()
             self.die()
+
     def autoAttack(self):
         """find min distance to player, then shoot
-        still working on it"""
-        x_min = self.get_dx
-        y_min = self.get_dy
-        pl_x = Player_ship.get_dx
-        pl_y = Player_ship.get_dy
-        d_x = x_min - pl_x
-        d_y = y_min - pl_y
+        !!!!still working on it!!!"""
+
     def die(self):
         self.game.score.value += int(Enemy.POINTS * self.size)
         self.game.score.right = games.screen.width - 10
         self.destroy()
+
 class Missle(games.Sprite):
     image = games.load_image("sprites/missle_player.bmp")
     BUFFER = 130 #distance from the ship
@@ -127,8 +129,6 @@ class Missle(games.Sprite):
         if self.right == games.screen.width:
             self.destroy()
         if self.overlapping_sprites:
-            for sprite in self.overlapping_sprites:
-                sprite.die()
             self.die()
     def die(self):
         self.destroy()
