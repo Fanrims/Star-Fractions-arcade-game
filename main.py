@@ -11,6 +11,7 @@ import random
 games.init(screen_width = 1600, screen_height = 1020, fps = 50) # screen
 
 class Player_ship(games.Sprite):
+
     def __init__(self, game, x, y):
         """initialize sprite"""
         super(Player_ship, self).__init__(image = Player_ship.player_image, x=x, y=y)
@@ -18,8 +19,9 @@ class Player_ship(games.Sprite):
     player_image = games.load_image("sprites/player_ship.bmp")
     ROTATION_STEP = 3
     MISSLE_DELAY = 20
-    PLAYER_HP = 5
+    HP = 5
     missle_wait = 0
+
     def update(self):
         """movement of the ship"""
         if games.keyboard.is_pressed(games.K_LEFT):
@@ -41,10 +43,12 @@ class Player_ship(games.Sprite):
         if self.missle_wait > 0:
             self.missle_wait -= 1
         if self.overlapping_sprites:
-            self.PLAYER_HP -= 1
+            self.HP -= 1
             self.game.hit_points.value -= 1
             self.game.hit_points.right = games.screen.width - 10
-            if self.PLAYER_HP == 0:
+            for Enemy in self.overlapping_sprites:
+                Enemy.die()
+            if self.HP == 0:
                 for sprite in self.overlapping_sprites:
                     sprite.die()
                 self.die()
@@ -62,6 +66,7 @@ class Enemy(games.Sprite):
               MEDIUM : games.load_image("sprites/enemy_MEDIUM.bmp"),
               LARGE : games.load_image("sprites/enemy_LARGE.bmp") }
     SPEED = 2
+
     def __init__(self, game, x, y, size):
         """initialize sprite of an enemy ship"""
         super(Enemy, self).__init__(
@@ -81,16 +86,17 @@ class Enemy(games.Sprite):
             self.right = 0
         if self.right < 0:
             self.left = games.screen.width
-        while Player_ship.PLAYER_HP != 0:
-            self.autoAttack()
         if self.overlapping_sprites == Missle.overlapping_sprites:
             for sprite in self.overlapping_sprites:
                 sprite.die()
             self.die()
 
     def autoAttack(self):
-        """find min distance to player, then shoot
-        !!!!still working on it!!!"""
+        """stop moving --> turn to the player --> shoot
+        !still working on it!"""
+
+
+
 
     def die(self):
         self.game.score.value += int(Enemy.POINTS * self.size)
@@ -129,13 +135,15 @@ class Missle(games.Sprite):
         if self.right == games.screen.width:
             self.destroy()
         if self.overlapping_sprites:
+            for sprite in self.overlapping_sprites:
+                sprite.die()
             self.die()
     def die(self):
-        self.destroy()
+            self.destroy()
 
 class Game(object):
     def __init__(self):
-        #free space around the player ship
+        #free space around the player
         BUFFER = 400
         """initialize an object Game"""
         #add score and player hit points
@@ -145,7 +153,7 @@ class Game(object):
                                 top = 10,
                                 right = games.screen.width - 10,
                                 is_collideable=False)
-        self.hit_points = games.Text(value=Player_ship.PLAYER_HP,
+        self.hit_points = games.Text(value=Player_ship.HP,
                                      size = 50,
                                      color=color.white,
                                      top=70,
@@ -177,7 +185,7 @@ class Game(object):
 
     def play(self):
         """start the game"""
-        #start the music
+        #start music
         games.music.load("sounds/StarFr_title.mp3")
         games.music.play(-1)
         #load background image
