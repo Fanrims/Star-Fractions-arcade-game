@@ -78,6 +78,8 @@ class Enemy(games.Sprite):
         self.game = game
 
     def update(self):
+        while(Player_ship.HP > 0):
+            self.autoAttack()
         if self.top > games.screen.height:
             self.bottom = 0
         if self.bottom < 0:
@@ -110,14 +112,14 @@ class Missle(games.Sprite):
     VELOCITY_FACTOR = 10 #speed
     def __init__(self, ship_x, ship_y, ship_angle):
         angle = ship_angle * math.pi/180
-        """calculating the starting position of the missle"""
+        """calculate the start position of the missle"""
         buffer_x = Missle.BUFFER * math.sin(angle)
         buffer_y = Missle.BUFFER * -math.cos(angle)
         x = ship_x + buffer_x
         y = ship_y + buffer_y
         dx = Missle.VELOCITY_FACTOR * math.sin(angle)
         dy = Missle.VELOCITY_FACTOR * -math.cos(angle)
-        """creating the missle"""
+        """create missle"""
         super(Missle, self).__init__(image = Missle.image,
                                      x = x, y = y,
                                      dx = dx, dy = dy)
@@ -185,17 +187,14 @@ class Game(object):
 
     def play(self):
         """start the game"""
-        #start music
         games.music.load("sounds/StarFr_title.mp3")
         games.music.play(-1)
-        #load background image
         background = games.load_image("pic/space.jpg")
         games.screen.background = background
         #start
         games.screen.mainloop()
 
     def end(self):
-        """end the game"""
         end_massage = games.Message(value= "GAME OVER",
                                     size = 300,
                                     color = color.red,
