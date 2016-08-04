@@ -78,8 +78,6 @@ class Enemy(games.Sprite):
         self.game = game
 
     def update(self):
-        while(Player_ship.HP > 0):
-            self.autoAttack()
         if self.top > games.screen.height:
             self.bottom = 0
         if self.bottom < 0:
@@ -92,13 +90,6 @@ class Enemy(games.Sprite):
             for sprite in self.overlapping_sprites:
                 sprite.die()
             self.die()
-
-    def autoAttack(self):
-        """stop moving --> turn to the player --> shoot
-        !still working on it!"""
-
-
-
 
     def die(self):
         self.game.score.value += int(Enemy.POINTS * self.size)
