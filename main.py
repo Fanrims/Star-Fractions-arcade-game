@@ -10,11 +10,26 @@ import random
 
 games.init(screen_width = 1600, screen_height = 1020, fps = 50) # screen
 
-class Player_ship(games.Sprite):
+class Ship(games.Sprite):
+    """main class of all ships"""
+    def update(self):
+        if self.top > games.screen.height:
+            self.bottom = 0
+        if self.bottom < 0:
+            self.top = games.screen.height
+        if self.left > games.screen.width:
+            self.right = 0
+        if self.right < 0:
+            self.left = games.screen.width
 
+    def attack(self):
+        new_missle = Missle(self.x, self.y, self.angle)
+        games.screen.add(new_missle)
+
+class Player(Ship):
     def __init__(self, game, x, y):
         """initialize sprite"""
-        super(Player_ship, self).__init__(image = Player_ship.player_image, x=x, y=y)
+        super(Player, self).__init__(image = Player.player_image, x=x, y=y)
         self.game = game
     player_image = games.load_image("sprites/player_ship.bmp")
     ROTATION_STEP = 3
@@ -25,9 +40,9 @@ class Player_ship(games.Sprite):
     def update(self):
         """movement of the ship"""
         if games.keyboard.is_pressed(games.K_LEFT):
-            self.angle -= Player_ship.ROTATION_STEP
+            self.angle -= Player.ROTATION_STEP
         if games.keyboard.is_pressed(games.K_RIGHT):
-            self.angle += Player_ship.ROTATION_STEP
+            self.angle += Player.ROTATION_STEP
         if games.keyboard.is_pressed(games.K_w):
             self.y -= 2
         if games.keyboard.is_pressed(games.K_s):
@@ -36,10 +51,9 @@ class Player_ship(games.Sprite):
             self.x -= 2
         if games.keyboard.is_pressed(games.K_d):
             self.x += 2
-        if games.keyboard.is_pressed(games.K_SPACE) and self.missle_wait == 0: # shooting
-            new_missle = Missle(self.x, self.y, self.angle)
-            games.screen.add(new_missle)
-            self.missle_wait = Player_ship.MISSLE_DELAY
+        if games.keyboard.is_pressed(games.K_SPACE) and self.missle_wait == 0:# shooting
+            self.attack()
+            self.missle_wait = Player.MISSLE_DELAY
         if self.missle_wait > 0:
             self.missle_wait -= 1
         if self.overlapping_sprites:
@@ -52,12 +66,13 @@ class Player_ship(games.Sprite):
                 for sprite in self.overlapping_sprites:
                     sprite.die()
                 self.die()
+
     def die(self):
         """destroy ship"""
         self.destroy()
         self.game.end()
 
-class Enemy(games.Sprite):
+class Enemy(Ship):
     SMALL = 1
     MEDIUM = 2
     LARGE = 3
@@ -77,15 +92,7 @@ class Enemy(games.Sprite):
         self.size = size
         self.game = game
 
-    def update(self):
-        if self.top > games.screen.height:
-            self.bottom = 0
-        if self.bottom < 0:
-            self.top = games.screen.height
-        if self.left > games.screen.width:
-            self.right = 0
-        if self.right < 0:
-            self.left = games.screen.width
+    def event(self):
         if self.overlapping_sprites == Missle.overlapping_sprites:
             for sprite in self.overlapping_sprites:
                 sprite.die()
@@ -146,7 +153,7 @@ class Game(object):
                                 top = 10,
                                 right = games.screen.width - 10,
                                 is_collideable=False)
-        self.hit_points = games.Text(value=Player_ship.HP,
+        self.hit_points = games.Text(value=Player.HP,
                                      size = 50,
                                      color=color.white,
                                      top=70,
@@ -155,10 +162,10 @@ class Game(object):
         games.screen.add(self.score)
         games.screen.add(self.hit_points)
         #create player
-        self.player_ship = Player_ship(game = self,
+        self.Player = Player(game = self,
                                        x = games.screen.width / 2,
                                        y = games.screen.height / 2)
-        games.screen.add(self.player_ship)
+        games.screen.add(self.Player)
         #create enemies
         for i in range(8):
             #calculate distance around player and spawn 8 enemies
@@ -166,8 +173,8 @@ class Game(object):
             y_min = BUFFER - x_min
             x_distance =random.randrange(x_min, games.screen.width - x_min)
             y_distance = random.randrange(y_min, games.screen.height - y_min)
-            x = self.player_ship.x + x_distance
-            y = self.player_ship.y + y_distance
+            x = self.Player.x + x_distance
+            y = self.Player.y + y_distance
             x %= games.screen.width # return an enemy into the screen
             y %= games.screen.height # if it spawn out of it
             enemies = Enemy(game = self,
