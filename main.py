@@ -38,6 +38,7 @@ class Player(Ship):
     missle_wait = 0
 
     def update(self):
+        super(Player, self).update()
         """movement of the ship"""
         if games.keyboard.is_pressed(games.K_LEFT):
             self.angle -= Player.ROTATION_STEP
