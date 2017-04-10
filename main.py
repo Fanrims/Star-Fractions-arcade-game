@@ -39,6 +39,15 @@ class Player(Ship):
 
     def update(self):
         """movement of the ship"""
+        if self.top > games.screen.height:
+            self.bottom = 0
+        if self.bottom < 0:
+            self.top = games.screen.height
+        if self.left > games.screen.width:
+            self.right = 0
+        if self.right < 0:
+            self.left = games.screen.width
+
         if games.keyboard.is_pressed(games.K_LEFT):
             self.angle -= Player.ROTATION_STEP
         if games.keyboard.is_pressed(games.K_RIGHT):
@@ -191,6 +200,9 @@ class Game(object):
         games.screen.background = background
         #start
         games.screen.mainloop()
+
+    def update(self):
+        """add new level"""
 
     def end(self):
         end_massage = games.Message(value= "GAME OVER",
