@@ -91,6 +91,15 @@ class Enemy(Ship):
               LARGE : games.load_image("sprites/enemy_LARGE.bmp") }
     SPEED = 2
 
+    def update(self):
+        if self.top > games.screen.height:
+            self.bottom = 0
+        if self.bottom < 0:
+            self.top = games.screen.height
+        if self.left > games.screen.width:
+            self.right = 0
+        if self.right < 0:
+            self.left = games.screen.width
     def __init__(self, game, x, y, size):
         """initialize sprite of an enemy ship"""
         super(Enemy, self).__init__(
