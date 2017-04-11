@@ -38,16 +38,8 @@ class Player(Ship):
     missle_wait = 0
 
     def update(self):
+        super(Player, self).update()
         """movement of the ship"""
-        if self.top > games.screen.height:
-            self.bottom = 0
-        if self.bottom < 0:
-            self.top = games.screen.height
-        if self.left > games.screen.width:
-            self.right = 0
-        if self.right < 0:
-            self.left = games.screen.width
-
         if games.keyboard.is_pressed(games.K_LEFT):
             self.angle -= Player.ROTATION_STEP
         if games.keyboard.is_pressed(games.K_RIGHT):
@@ -90,18 +82,11 @@ class Enemy(Ship):
               MEDIUM : games.load_image("sprites/enemy_MEDIUM.bmp"),
               LARGE : games.load_image("sprites/enemy_LARGE.bmp") }
     SPEED = 2
+    count = 0
 
-    def update(self):
-        if self.top > games.screen.height:
-            self.bottom = 0
-        if self.bottom < 0:
-            self.top = games.screen.height
-        if self.left > games.screen.width:
-            self.right = 0
-        if self.right < 0:
-            self.left = games.screen.width
     def __init__(self, game, x, y, size):
         """initialize sprite of an enemy ship"""
+        Enemy.count += 1
         super(Enemy, self).__init__(
             image = Enemy.images[size],
             x = x, y = y,
@@ -119,6 +104,9 @@ class Enemy(Ship):
     def die(self):
         self.game.score.value += int(Enemy.POINTS * self.size)
         self.game.score.right = games.screen.width - 10
+        Enemy.count -= 1
+        if Enemy.count == 0:
+            self.game.newLevel()
         self.destroy()
 
 class Missle(games.Sprite):
@@ -161,8 +149,7 @@ class Missle(games.Sprite):
 
 class Game(object):
     def __init__(self):
-        #free space around the player
-        BUFFER = 400
+        self.level = 0
         """initialize an object Game"""
         #add score and player hit points
         self.score = games.Text(value = 0,
@@ -184,22 +171,6 @@ class Game(object):
                                        x = games.screen.width / 2,
                                        y = games.screen.height / 2)
         games.screen.add(self.Player)
-        #create enemies
-        for i in range(8):
-            #calculate distance around player and spawn 8 enemies
-            x_min = random.randrange(BUFFER)
-            y_min = BUFFER - x_min
-            x_distance =random.randrange(x_min, games.screen.width - x_min)
-            y_distance = random.randrange(y_min, games.screen.height - y_min)
-            x = self.Player.x + x_distance
-            y = self.Player.y + y_distance
-            x %= games.screen.width # return an enemy into the screen
-            y %= games.screen.height # if it spawn out of it
-            enemies = Enemy(game = self,
-                            x = x,
-                            y = y,
-                            size=random.choice([Enemy.SMALL, Enemy.MEDIUM, Enemy.LARGE]))
-            games.screen.add(enemies)
 
     def play(self):
         """start the game"""
@@ -207,11 +178,31 @@ class Game(object):
         games.music.play(-1)
         background = games.load_image("pic/space.jpg")
         games.screen.background = background
-        #start
+        #start with level 1
+        self.newLevel()
         games.screen.mainloop()
 
-    def update(self):
-        """add new level"""
+    def newLevel(self):
+        self.level += 1
+        BUFFER = 150
+
+        for i in range(self.level * 2):
+            # calculate distance around player and spawn 8 enemies
+            x_min = random.randrange(BUFFER)
+            y_min = BUFFER - x_min
+            x_distance = random.randrange(x_min, games.screen.width - x_min)
+            y_distance = random.randrange(y_min, games.screen.height - y_min)
+            x = self.Player.x + x_distance
+            y = self.Player.y + y_distance
+            x %= games.screen.width  # return an enemy into the screen
+            y %= games.screen.height  # if it spawn out of it
+            enemies = Enemy(game=self,
+                            x=x,
+                            y=y,
+                            size=random.choice([Enemy.SMALL, Enemy.MEDIUM, Enemy.LARGE]))
+            games.screen.add(enemies)
+
+
 
     def end(self):
         end_massage = games.Message(value= "GAME OVER",
