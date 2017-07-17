@@ -78,11 +78,15 @@ class Enemy(Ship):
     MEDIUM = 2
     LARGE = 3
     POINTS = 100
+
     images = {SMALL : games.load_image("sprites/enemy_SMALL.bmp"),
               MEDIUM : games.load_image("sprites/enemy_MEDIUM.bmp"),
               LARGE : games.load_image("sprites/enemy_LARGE.bmp") }
     SPEED = 2
     count = 0
+
+    MISSLE_DELAY = 20
+    missle_wait = 0
 
     def __init__(self, game, x, y, size):
         """initialize sprite of an enemy ship"""
@@ -95,11 +99,15 @@ class Enemy(Ship):
         self.size = size
         self.game = game
 
-    def event(self):
+    def update(self):
+        super(Enemy, self).update()
         if self.overlapping_sprites == Missle.overlapping_sprites:
             for sprite in self.overlapping_sprites:
                 sprite.die()
             self.die()
+        while Player.HP > 0 and self.missle_wait == 0: #shiiiiieeet
+            self.attack()
+            self.missle_wait = Enemy.MISSLE_DELAY
 
     def die(self):
         self.game.score.value += int(Enemy.POINTS * self.size)
@@ -114,6 +122,7 @@ class Missle(games.Sprite):
     BUFFER = 130 #distance from the ship
     LIFETIME = 100
     VELOCITY_FACTOR = 10 #speed
+
     def __init__(self, ship_x, ship_y, ship_angle):
         angle = ship_angle * math.pi/180
         """calculate the start position of the missle"""
@@ -128,6 +137,7 @@ class Missle(games.Sprite):
                                      x = x, y = y,
                                      dx = dx, dy = dy)
         self.lifetime = Missle.LIFETIME
+
     def update(self):
         self.lifetime -= 1
         if self.lifetime == 0:
@@ -144,6 +154,7 @@ class Missle(games.Sprite):
             for sprite in self.overlapping_sprites:
                 sprite.die()
             self.die()
+
     def die(self):
             self.destroy()
 
